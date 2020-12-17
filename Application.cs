@@ -15,7 +15,7 @@ namespace BmwDiscovery
 
         static void Main(string[] args)
         {
-            List<IPAddress> broadcastAddresses = new List<IPAddress>();
+            List<IPAddress> interfaceAddresses = new List<IPAddress>();
             Console.WriteLine("Found interfaces:");
             foreach(NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces()) {
                 foreach (var unicastIp in nic.GetIPProperties().UnicastAddresses)
@@ -24,17 +24,17 @@ namespace BmwDiscovery
                         && !IPAddress.IsLoopback(unicastIp.Address))
                     {
                         Console.WriteLine("\tInterfaceName: " + nic.Name + " IPv4: " + unicastIp.Address);
-                        broadcastAddresses.Add(unicastIp.Address);
+                        interfaceAddresses.Add(unicastIp.Address);
                     }
                 }
             }
 
-            if (broadcastAddresses.Count < 1)
+            if (interfaceAddresses.Count < 1)
             {
                 Console.WriteLine("Not found any suitable interfaces/networks.");
             }
 
-            broadcastAddresses.AsParallel().ForAll(
+            interfaceAddresses.AsParallel().ForAll(
                 address =>
                 {
                     Console.WriteLine("Sending broadcast on interface: " + address);
