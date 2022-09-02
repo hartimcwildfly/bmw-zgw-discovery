@@ -12,28 +12,17 @@ namespace BmwDiscovery
 
         static void Main(string[] args)
         {
-            List<IPAddress> interfaceAddresses = new List<IPAddress>();
-            Console.WriteLine("Found interfaces:");
-            foreach(NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces()) {
-                foreach (var unicastIp in nic.GetIPProperties().UnicastAddresses)
-                {
-                    if (nic.OperationalStatus == OperationalStatus.Up && unicastIp.Address.AddressFamily == AddressFamily.InterNetwork
-                        && !IPAddress.IsLoopback(unicastIp.Address))
-                    {
-                        Console.WriteLine("\tInterfaceName: " + nic.Name + " IPv4: " + unicastIp.Address);
-                        interfaceAddresses.Add(unicastIp.Address);
-                    }
-                }
-            }
+            List<IPAddress> interfaceAddresses = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
+                .SelectMany(nic => nic.GetIPProperties().UnicastAddresses)
+                .Where(unicastIp => unicastIp.Address.AddressFamily == AddressFamily.InterNetwork)
+                .Where(unicastIp => !IPAddress.IsLoopback(unicastIp.Address))
+                .Select(unicastIp => unicastIp.Address)
+                .ToList();
 
-            if (interfaceAddresses.Count < 1)
-            {
-                Console.WriteLine("Not found any suitable interfaces/networks.");
-            }
+            if (interfaceAddresses.Count < 1) Console.WriteLine("No suitable interfaces/networks found.");
 
-            interfaceAddresses.AsParallel().ForAll(
-                address =>
-                {
+            interfaceAddresses.AsParallel().ForAll(address => {
                     Console.WriteLine("Sending broadcast on interface: " + address);
                     try
                     {
@@ -53,7 +42,7 @@ namespace BmwDiscovery
                         Console.WriteLine("Receiving message on interface " + address + " failed: " + exception.Message);
                     }
                 }
-                );
+            );
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
         }
