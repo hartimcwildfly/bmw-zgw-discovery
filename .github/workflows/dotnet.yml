@@ -26,3 +26,6 @@ jobs:
       with:
         name: ${{ matrix.os }}-${{ matrix.architecture }}
         path: ./artifact/BmwDiscovery*
+    - name: Build Docker Image
+      uses: docker/build-push-action@v4
+      if: matrix.os == 'linux' && matrix.architecture == 'x64'
