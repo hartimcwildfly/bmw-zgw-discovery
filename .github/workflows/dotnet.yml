@@ -33,5 +33,5 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_TOKEN }}
     - name: Build Docker Image
-      run: docker build -t docker.io/hartimcwildfly/bmw-zgw-discovery . && docker push
+      run: docker build -t docker.io/hartimcwildfly/bmw-zgw-discovery . && docker push docker.io/hartimcwildfly/bmw-zgw-discovery
       if: matrix.os == 'linux' && matrix.architecture == 'x64'
