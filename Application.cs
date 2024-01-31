@@ -7,26 +7,26 @@ namespace BmwDiscovery
 {
     class Application
     {
-        private static readonly byte[] DiscoveryPayload = {0x00, 0x00, 0x00, 0x00, 0x00, 0x11};
+        private static readonly byte[] DiscoveryPayload = [0x00, 0x00, 0x00, 0x00, 0x00, 0x11];
         private const int DiscoveryPort = 6811;
 
         static void Main(string[] args)
         {
-            List<IPAddress> interfaceAddresses = NetworkInterface.GetAllNetworkInterfaces()
+            List<UnicastIPAddressInformation> interfaceAddresses = NetworkInterface.GetAllNetworkInterfaces()
                 .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
                 .SelectMany(nic => nic.GetIPProperties().UnicastAddresses)
                 .Where(unicastIp => unicastIp.Address.AddressFamily == AddressFamily.InterNetwork)
                 .Where(unicastIp => !IPAddress.IsLoopback(unicastIp.Address))
-                .Select(unicastIp => unicastIp.Address)
                 .ToList();
 
             if (interfaceAddresses.Count < 1) Console.WriteLine("No suitable interfaces/networks found.");
 
             interfaceAddresses.AsParallel().ForAll(address => {
-                    Console.WriteLine("Sending broadcast on interface: " + address);
+                    var ipAddressWithCidr = address.Address + "/" + address.PrefixLength;
+                    Console.WriteLine("Sending broadcast on interface: " + ipAddressWithCidr);
                     try
                     {
-                        UdpClient udpClient = new UdpClient(new IPEndPoint(address, 0));
+                        UdpClient udpClient = new UdpClient(new IPEndPoint(address.Address, 0));
                         udpClient.Client.ReceiveTimeout = 3000;
 
                         var endpoint = new IPEndPoint(IPAddress.Broadcast, DiscoveryPort);
@@ -39,7 +39,7 @@ namespace BmwDiscovery
                     }
                     catch (SocketException exception)
                     {
-                        Console.WriteLine("Receiving message on interface " + address + " failed: " + exception.Message);
+                        Console.WriteLine("Receiving message on interface " + ipAddressWithCidr + " failed: " + exception.Message);
                     }
                 }
             );
