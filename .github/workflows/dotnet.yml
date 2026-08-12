@@ -14,20 +14,20 @@ jobs:
         architecture: [x64, arm64]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0
     - name: Build
       run: dotnet publish -c Release -r ${{ matrix.os }}-${{ matrix.architecture }}
     - name: Upload
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.os }}-${{ matrix.architecture }}
         path: ./bin/Release/net10.0/${{ matrix.os }}-${{ matrix.architecture }}/publish/BmwDiscovery*
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v4
       if: matrix.os == 'linux-musl' && matrix.architecture == 'x64'
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
