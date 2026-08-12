@@ -1,6 +1,6 @@
-FROM alpine
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled
 
-RUN apk add --no-cache libstdc++ libgcc
-
-COPY ./BmwDiscovery /opt/BmwDiscovery
-ENTRYPOINT ["/opt/BmwDiscovery"]
+USER $APP_UID
+WORKDIR /app
+COPY --chown=$APP_UID:$APP_UID ./BmwDiscovery .
+ENTRYPOINT ["./BmwDiscovery"]
